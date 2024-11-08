@@ -16,7 +16,7 @@ const io = new Server(server, {
 
 app.use(
   cors({
-    origin: "https://david-tictactoe.netlify.app/",
+       origin:process.env.URL || "https://david-tictactoe.netlify.app/",
   })
 );
 
