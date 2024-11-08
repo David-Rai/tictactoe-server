@@ -10,7 +10,7 @@ const server = http.createServer(app);
 // Configure Socket.IO with CORS for React app
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin:process.env.URL || "http://localhost:5173",
   },
 });
 
@@ -25,43 +25,49 @@ let waitingPlayer = null;
 // SOCKET.IO connection
 io.on("connection", (client) => {
 
-//Getting the name and socket id
-client.on("join-room",({name,id})=>{
-const player=io.sockets.sockets.get(id)//retriving the socket or client instance
+  // Getting the name and socket id
+  client.on("join-room", ({ name, id }) => {
 
-if(!waitingPlayer || waitingPlayer === null){
-  waitingPlayer={
-  name,player
-  }
-  return 
-}
+    const player = io.sockets.sockets.get(id); // Retrieving the socket or client instance
 
-//if there was waiting player
-const roomName=`${waitingPlayer.player.id}-${player.id}`
-waitingPlayer.player.join(roomName)
-player.join(roomName)
+    if (!player) {
+      return; // Exit if the player socket doesn't exist
+    }
 
-//both are joined message
-io.to(roomName).emit("joined-message",{
-message:"you both are playing",
-rName:roomName
-})
+    if (!waitingPlayer) {
+      // No waiting player, assign the current player to waitingPlayer
+      waitingPlayer = {
+        name,
+        player,
+      };
+      return; // Exit, wait for the next player
+    }
 
-waitingPlayer.player.emit('oponent-name',{name,role:"x"})
-player.emit('oponent-name',{name:waitingPlayer.name,role:"o"})
+    // If there was a waiting player, create the room
+    const roomName = `${waitingPlayer.player.id}-${player.id}`;
+    waitingPlayer.player.join(roomName);
+    player.join(roomName);
 
 
-waitingPlayer=null//removing the waiting player instance
-})
+    // Emit messages to both players
+    io.to(roomName).emit("joined-message", {
+      message: "You both are playing",
+      rName: roomName,
+    });
 
-//listening the players move
-client.on('move',({move,roomName,turn})=>{
-const nextTurn=turn === "x" ? "o" : "x"
-io.to(roomName).emit("mark-move",{move,nextTurn,mark:turn})
-})
+    waitingPlayer.player.emit("oponent-name", { name, role: "x" });
+    player.emit("oponent-name", { name: waitingPlayer.name, role: "o" });
 
+    // Reset waitingPlayer after the game starts
+    waitingPlayer = null;
+  });
 
-
+  // Listening to players' moves
+  client.on("move", ({ move, roomName, turn }) => {
+    const nextTurn = turn === "x" ? "o" : "x";
+    io.to(roomName).emit("mark-move", { move, nextTurn, mark: turn });
+    console.log(`Move made in room ${roomName}: ${move} by ${turn}`);
+  });
 });
 
 app.get("/", (req, res) => {
@@ -69,7 +75,7 @@ app.get("/", (req, res) => {
 });
 
 // Set port with a fallback value
-const port = process.env.PORT || 1111;
+const port = process.env.PORT || 3000;
 server.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
