@@ -10,13 +10,13 @@ const server = http.createServer(app);
 // Configure Socket.IO with CORS for React app
 const io = new Server(server, {
   cors: {
-    origin:process.env.URL || "http://localhost:5173",
+    origin:process.env.URL || "https://david-tictactoe.netlify.app/",
   },
 });
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://david-tictactoe.netlify.app/",
   })
 );
 
