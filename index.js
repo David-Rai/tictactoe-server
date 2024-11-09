@@ -21,10 +21,16 @@ app.use(
 );
 
 let waitingPlayer = null;
+let currentPlayers=[{list:"list of players"}]
 
 // SOCKET.IO connection
 io.on("connection", (client) => {
-
+currentPlayers.push({
+  clientName:name,
+  clientId:id
+}
+)
+  
   // Getting the name and socket id
   client.on("join-room", ({ name, id }) => {
 
