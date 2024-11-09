@@ -26,15 +26,15 @@ let currentPlayers=[{list:"list of players"}]
 
 // SOCKET.IO connection
 io.on("connection", (client) => {
+
+  
+  // Getting the name and socket id
+  client.on("join-room", ({ name, id }) => {
 currentPlayers.push({
   clientName:name,
   clientId:id
 }
 )
-  
-  // Getting the name and socket id
-  client.on("join-room", ({ name, id }) => {
-
     const player = io.sockets.sockets.get(id); // Retrieving the socket or client instance
 
     if (!player) {
